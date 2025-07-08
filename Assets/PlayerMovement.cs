@@ -9,11 +9,8 @@ public class PlayerMovement : MonoBehaviour
 
     public float playerHeight;
     public LayerMask floorLayer;
-    bool grounded;
 
     public float groundDrag;
-
-    public Transform orientation;
 
     float horizontalInput;
     float verticalInput;
@@ -21,9 +18,6 @@ public class PlayerMovement : MonoBehaviour
     Vector3 movementDirection;
 
     Rigidbody playerRigidBody;
-
-    public GameObject mainCube;
-    public Material cubeColor;
 
     private void Start()
     {
@@ -34,13 +28,10 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        movePlayer();
-        speedControl();
-        changeCubeColor();
 
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, floorLayer);
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, floorLayer);
 
-        if (grounded)
+        if (isGrounded)
         {
             playerRigidBody.linearDamping = groundDrag;
         }
@@ -48,21 +39,24 @@ public class PlayerMovement : MonoBehaviour
         {
             playerRigidBody.linearDamping = 0;
         }
+
+        movePlayer(isGrounded);
+        speedControl();
     }
 
     private void FixedUpdate()
     {
-        movementDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+        movementDirection = transform.forward * verticalInput + transform.right * horizontalInput;
         playerRigidBody.AddForce(movementDirection.normalized * movementSpeed * 10f, ForceMode.Force);
     }
 
 
-    private void movePlayer()
+    private void movePlayer(bool isGrounded)
     {
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        if (Input.GetKeyDown(KeyCode.Space) && grounded)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
         }
@@ -83,20 +77,6 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 limitedVelocity = flatVelocity.normalized * movementSpeed;
             playerRigidBody.linearVelocity = new Vector3(limitedVelocity.x, playerRigidBody.linearVelocity.y, limitedVelocity.z);
-        }
-    }
-
-    private void changeCubeColor()
-    {   
-        Vector3 distanceBetweenPlayerAndCube = mainCube.transform.position - playerRigidBody.transform.position;
-        
-        if (distanceBetweenPlayerAndCube.magnitude < 5f)
-        {
-            cubeColor.color = Color.red;
-        }
-        else
-        {
-            cubeColor.color = Color.green;
         }
     }
 }
